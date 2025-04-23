@@ -1,4 +1,4 @@
-#include "pch.hpp"
+Ôªø#include "pch.hpp"
 
 static ID3D11Device* g_pd3dDevice = nullptr;
 static ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
@@ -11,14 +11,21 @@ void CleanupDeviceD3D();
 void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-void imp::imgui()
+void imp::menuloop()
 {
-    HWND hwnd = NULL;
+    HWND hwnd = NULL;//ÁªòÂà∂Âè•ÊüÑ
     WNDCLASSEXW wc = { sizeof(wc), CS_HREDRAW | CS_VREDRAW, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"imp_Class", nullptr };
     ::RegisterClassExW(&wc);
     if (sys::debug)
     {
-        hwnd = ::CreateWindowW(wc.lpszClassName, L"Shrimp", WS_OVERLAPPEDWINDOW, 0, 0, 1920, 1024, nullptr, nullptr, wc.hInstance, nullptr);;
+        hwnd = ::CreateWindowW(wc.lpszClassName, L"Shrimp", WS_OVERLAPPEDWINDOW, GetSystemMetrics(0)/2-960, GetSystemMetrics(1)/2-540, 1920, 1024, nullptr, nullptr, wc.hInstance, nullptr);;
+        // Initialize Direct3D
+        if (!CreateDeviceD3D(hwnd))
+        {
+            CleanupDeviceD3D();
+            ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
+            return;
+        }        
         ::ShowWindow(hwnd, SW_SHOWDEFAULT);
         ::UpdateWindow(hwnd);
         sys::hWnd = hwnd;
@@ -35,48 +42,29 @@ void imp::imgui()
             GetSystemMetrics(SM_CYSCREEN),
             nullptr, nullptr, wc.hInstance, nullptr
         );
+        if (!CreateDeviceD3D(hwnd))
+        {
+            CleanupDeviceD3D();
+            ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
+            return;
+        }
         ::SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
         ::ShowWindow(hwnd, SW_SHOWDEFAULT);
         ::UpdateWindow(hwnd);
     }
-    if (!CreateDeviceD3D(hwnd))
-    {
-        CleanupDeviceD3D();
-        ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
-        return ;
-    }
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    // 1. DPI  ≈‰
-    const float dpi_scale = GetSystemDPI();
-    io.FontGlobalScale = dpi_scale;
-    // 2. ◊÷ÃÂº”‘ÿ£®¥¯∂‡¬∑æ∂ªÿÕÀ£©
-    constexpr const char* font_paths[] = {
-        "C:/Windows/Fonts/simhei.ttf",         // WindowsœµÕ≥¬∑æ∂
-        "fonts/simhei.ttf",                   // œÓƒøœ‡∂‘¬∑æ∂
-    };
-    bool font_loaded = false;
-    for (const auto& path : font_paths) {
-        if (std::ifstream(path).good()) {
-            if (io.Fonts->AddFontFromFileTTF(
-                path,
-                18.0f * dpi_scale,  // ∞¥DPIÀı∑≈◊÷∫≈
-                nullptr,
-                io.Fonts->GetGlyphRangesChineseFull()))
-            {
-                font_loaded = true;
-                break;
-            }
-        }
+    const float dpi_scale = DPIScaling::GetSystemScale();
+    printf("Á≥ªÁªüÁº©ÊîæÁéá: %.2f\n", dpi_scale);
+    if (!dpi_scale)
+        LOG_ERROR("Ëé∑ÂèñDPIÁº©ÊîæÊØî‰æãÂ§±Ë¥•!");
+    FontSys::Fonts fonts;
+    if (!FontSys::Initialize(fonts, dpi_scale)) {
+        LOG_ERROR("ÈÉ®ÂàÜÂ≠ó‰ΩìÊó†Ê≥ïÂä†ËΩΩÊàñ‰∏çÂ≠òÂú®!");
     }
-    if (!font_loaded) {
-        LOG_WARNING("æØ∏Ê£∫ π”√ƒ¨»œ◊÷ÃÂÃÊ¥˙÷–Œƒ◊÷ÃÂ");
-        io.Fonts->AddFontDefault();
-    }
-    // 3.  ‰»Îøÿ÷∆≈‰÷√
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
-    // 4. —˘ Ω≈‰÷√£®∞¥DPIÀı∑≈£©
+    // 4. Ê†∑ÂºèÈÖçÁΩÆÔºàÊåâDPIÁº©ÊîæÔºâ
     ImGuiStyle& style = ImGui::GetStyle();
     const auto scale_style = [&](auto& value) { value *= dpi_scale; };
     style.WindowPadding = ImVec2(0, 0);
@@ -95,39 +83,39 @@ void imp::imgui()
     style.ChildRounding = 10.0f * dpi_scale;
     style.ButtonTextAlign = ImVec2(0.5f, 0);
     style.TabRounding = 1.0f * dpi_scale;
-    // 5. ππΩ®◊÷ÃÂºØ
+    // 5. ÊûÑÂª∫Â≠ó‰ΩìÈõÜ
     io.Fonts->Build();
-
     ImGui::StyleColorsDark();
+
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    static ULONGLONG time_…œ¥ŒÀ¢–¬ ±º‰ = 0;
-    static uint32_t ÷° ˝ = 0;
-    bool done = false;
-    
+    static ULONGLONG time_‰∏äÊ¨°Âà∑Êñ∞Êó∂Èó¥ = 0;
+    static uint32_t Â∏ßÊï∞ = 0;
     //main loop
-    while (sys:: £”‡ ±º‰>0)
+    bool done = false;
+    while (sys::loop)
     {
         MSG msg;
-        while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
+        while (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
         {
-            ::TranslateMessage(&msg);
-            ::DispatchMessage(&msg);
             if (msg.message == WM_QUIT)
-                done = true;
+                done=true;
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
         }
         if (done)
             break;
-        if (GetTickCount64() - time_…œ¥ŒÀ¢–¬ ±º‰ > 1000)
+        if (GetTickCount64() - time_‰∏äÊ¨°Âà∑Êñ∞Êó∂Èó¥ > 1000)
         {
-            sys:: £”‡ ±º‰--;
-            ÷° ˝ = (uint32_t)ImGui::GetIO().Framerate;
-            time_…œ¥ŒÀ¢–¬ ±º‰ = GetTickCount64();
+            sys::Ââ©‰ΩôÊó∂Èó¥--;
+            Â∏ßÊï∞ = (uint32_t)ImGui::GetIO().Framerate;
+            time_‰∏äÊ¨°Âà∑Êñ∞Êó∂Èó¥ = GetTickCount64();
         }
-        sys::dpi = GetSystemDPI();
+        sys::dpi = DPIScaling::GetSystemScale();//Êï¥‰∫Ü‰∏§‰∏™Â∞èÊó∂ËøòÊ≤°Ê≠£Â•ΩÁöÑÂÇªÈÄºÁé©ÂÑø
+
         if (sys::debug || sys::ReadType==false) {
             sys::ScreenX = ImGui::GetIO().DisplaySize.x * sys::dpi / 2;
             sys::ScreenY = ImGui::GetIO().DisplaySize.y * sys::dpi / 2;
@@ -149,25 +137,26 @@ void imp::imgui()
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
+        //if (show_demo_window)
+        //    ImGui::ShowDemoWindow(&show_demo_window);
 
-        static bool show_window = true;
-        if (show_window) {  // œ»ºÏ≤È◊¥Ã¨
-            if (ImGui::Begin("Conditional Window", &show_window)) {
-                ImGui::Text("ƒ⁄»›Ωˆ‘⁄¥∞ø⁄¥Úø™ ±‰÷»æ");
-            }
+        ImGui::SetNextWindowSize(ImVec2(800, 400));
+        if (ImGui::Begin("sheimp.main", nullptr, 1 | 8 | 16)) {
+            ImGui::Text("hallo e++");
+            ImGui::Text("DPI:%.2f", sys::dpi);
             ImGui::End();
         }
 
-
         ImGui::GetForegroundDrawList()->AddRect(ImVec2(0, 0), ImVec2(50, 100), IM_COL32(255,255,255,255), 1.0f, ImDrawFlags_None, 1.0f);
-        ªÊ÷∆Œƒ±æ(ImVec2(10.0f, 120.0f), IM_COL32(255, 255, 255, 255), L"∂ØÃ¨◊™ªªµƒ÷–Œƒ");
+        imp::addText(ImVec2(10.0f, 120.0f), IM_COL32(255, 255, 255, 255), sys::debug?L"Ë∞ÉËØïÊ®°Âºè":L"Âä®ÊÄÅËΩ¨Êç¢ÁöÑ‰∏≠Êñá");
         
         ImGui::Render();
-        const float clear_color_with_alpha[4] = { 0, 0, 0, 0 };  // ÕÍ»´Õ∏√˜±≥æ∞
+        //const float clear_color_with_alpha[4] = { 0, 0, 0, 0 };  // ÂÆåÂÖ®ÈÄèÊòéËÉåÊôØ
+        const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
         g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
         g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-        HRESULT hr = g_pSwapChain->Present(sys::¥π÷±Õ¨≤Ω ? 1 : 0, 0);
+        HRESULT hr = g_pSwapChain->Present(sys::ÂûÇÁõ¥ÂêåÊ≠• ? 1 : 0, 0);
         g_SwapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
     }
     ImGui_ImplDX11_Shutdown();
@@ -176,10 +165,10 @@ void imp::imgui()
     CleanupDeviceD3D();
     ::DestroyWindow(hwnd);
     ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
-    if (sys:: £”‡ ±º‰ <= 0) {
-        LOG_WARNING("”√ªß“—µΩ∆⁄!");
+    if (sys::Ââ©‰ΩôÊó∂Èó¥ <= 0) {
+        LOG_WARNING("Áî®Êà∑Â∑≤Âà∞Êúü!");
     }
-    LOG_WARNING("ImGui“—–∂‘ÿ!");
+    LOG_WARNING("ImGuiÂ∑≤Âç∏ËΩΩ!");
 }
 bool CreateDeviceD3D(HWND hWnd)
 {
@@ -232,11 +221,6 @@ void CleanupRenderTarget()
     if (g_mainRenderTargetView) { g_mainRenderTargetView->Release(); g_mainRenderTargetView = nullptr; }
 }
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-// Win32 message handler
-// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
@@ -254,8 +238,16 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         ::PostQuitMessage(0);
         return 0;
     case WM_CREATE:
-        MARGINS margins = { -1, -1, -1, -1 };
-        DwmExtendFrameIntoClientArea(hWnd, &margins);
+        if (const auto dwm = LoadLibrary("dwmapi.dll")) {
+            using DwmExtendFrameFn = HRESULT(WINAPI*)(HWND, const MARGINS*);
+            if (const auto func = reinterpret_cast<DwmExtendFrameFn>(
+                GetProcAddress(dwm, "DwmExtendFrameIntoClientArea"))) {
+                MARGINS margins = { -1 };
+                func(hWnd, &margins);
+            }
+            FreeLibrary(dwm);
+        }
+        return 0;
     }
     return ::DefWindowProcW(hWnd, msg, wParam, lParam);
 }
@@ -266,52 +258,31 @@ void InputHandler(HWND hWnd) {
     ImGui::GetIO().MousePos.x = p.x;
     ImGui::GetIO().MousePos.y = p.y;
 }
-BOOL UpdateWindowData(HWND hWnd,HWND im_hWnd) {
-    static RECT old = { 0 };  // æ≤Ã¨±‰¡ø±£≥÷◊¥Ã¨
+BOOL UpdateWindowData(
+    HWND hWnd,//Ê∏∏ÊàèÂè•ÊüÑ
+    HWND im_hWnd) {//ÁªòÂà∂Âè•ÊüÑ
+    
+    static RECT old = { 0 };  // ÈùôÊÄÅÂèòÈáè‰øùÊåÅÁä∂ÊÄÅ
     RECT rect;
-    // ºÏ≤È¥∞ø⁄”––ß–‘
+    POINT origin = {0,0};
     if (!IsWindow(hWnd)) {
-        LOG_WARNING("Œﬁ–ß¥∞ø⁄"); // µ˜ ‘ ‰≥ˆ
+        LOG_WARNING("Êó†ÊïàÁ™óÂè£"); // Ë∞ÉËØïËæìÂá∫
         return false;
     }
-    CreateRenderTarget(); // ºŸ…Ë“— µœ÷µƒ¥¥Ω®‰÷»æƒø±Í∫Ø ˝
-    // ªÒ»°µ±«∞¥∞ø⁄¿©’π—˘ Ω
-    LONG style = GetWindowLongW(im_hWnd, GWL_EXSTYLE);
-    if (ImGui::GetIO().WantCaptureMouse)
-    {
-        // ImGui–Ë“™ Û±Í ‰»Î£∫“∆≥˝WS_EX_LAYERED£®‘ –Ì Û±ÍΩªª•£©
-        if (style & WS_EX_LAYERED)
-        {
-            SetWindowLongW(im_hWnd, GWL_EXSTYLE, style & ~WS_EX_LAYERED);
-        }
-    }
-    else
-    {
-        // ImGui≤ª–Ë“™ Û±Í ‰»Î£∫ÃÌº”WS_EX_LAYERED£®ª÷∏¥Õ∏√˜¥©Õ∏£©
-        if (!(style & WS_EX_LAYERED))
-        {
-            SetWindowLongW(im_hWnd, GWL_EXSTYLE, style | WS_EX_LAYERED);
-        }
+    if (sys::debug == false) {
+        GetClientRect(hWnd, &rect);
+        ClientToScreen(hWnd, &origin);
+        SetWindowPos(im_hWnd,
+            HWND_TOPMOST,
+            origin.x,
+            origin.y,
+            rect.right - rect.left,
+            rect.bottom - rect.top,
+            SWP_SHOWWINDOW);
     }
     return 1;
 }
-void LoadFonts() {
-        //◊÷ÃÂƒø¬º £Ω »°Ãÿ∂®ƒø¬º(4) £´ °∞msyh.ttc°±
-        //Sys._ƒ¨»œ◊÷ÃÂ_18 £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º, 18, , ig.GetFontAtlas().GetGlyphRangesChineseFull())
-        //◊÷ÃÂƒø¬º £Ω »°Ãÿ∂®ƒø¬º(4) £´ °∞msyhbd.ttc°±
-        //Sys._ƒ¨»œ◊÷ÃÂ_22 £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º, 22, , ig.GetFontAtlas().GetGlyphRangesChineseFull())
-        //Sys._ƒ¨»œ◊÷ÃÂ_28 £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º, 28, , )
-        //Sys._ƒ¨»œ◊÷ÃÂ_48 £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º, 48, , )
-        //◊÷ÃÂƒø¬º £Ω »°‘À––ƒø¬º() £´ °∞\fonts\°±
-        //Sys._ ˝◊÷◊÷ÃÂ2_18 £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º £´ °∞stratum2.ttf°±, 18, , )
-        //Sys._ ˝◊÷◊÷ÃÂ2_32 £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º £´ °∞stratum2.ttf°±, 32, , )
-        //Sys._ ˝◊÷◊÷ÃÂ2_64 £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º £´ °∞stratum2.ttf°±, 64, , )
-        //Sys._ ˝◊÷◊÷ÃÂ_32 £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º £´ °∞Quartz.ttf°±, 32, , )
-        //Sys._»Ìº˛Õº±Í_28 £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º £´ °∞tga.ttf°±, 28, , )
-        //Sys._Œ‰∆˜◊÷ÃÂ £Ω ig.GetFontAtlas().AddFontFromFileTTF(◊÷ÃÂƒø¬º £´ °∞Weaponioc.ttf°±, 64, , )
-
-}
-void ªÊ÷∆Œƒ±æ(ImVec2 pos,ImU32 col,std::wstring chinese_text)
+void imp::addText(ImVec2 pos,ImU32 col,std::wstring chinese_text)
 {
     std::string utf8_str = WideToUTF8(chinese_text);
     ImGui::GetForegroundDrawList()->AddText(pos, col, utf8_str.c_str());
