@@ -94,7 +94,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>crypt32.lib;wldap32.lib;normaliz.lib;libcurl_a.lib;glfw3.lib;opengl32.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;wldap32.lib;normaliz.lib;libcurl_a.lib;glfw3.lib;opengl32.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(DXSDK_DIR)/Lib/x64;$(SolutionDir)CS2_Shrimp\ext\curl\lib;$(SolutionDir)CS2_Shrimp\ext\glfw\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -106,6 +106,7 @@
     <ClInclude Include="conf\offsets.h" />
     <ClInclude Include="src\conf\offsets.hpp" />
     <ClInclude Include="src\EC\common.hpp" />
+    <ClInclude Include="src\EC\DPIHelper.h" />
     <ClInclude Include="src\EC\EC.hpp" />
     <ClInclude Include="ext\easywsclient\easywsclient.hpp" />
     <ClInclude Include="ext\fnv1a\fnv1a.hpp" />
@@ -113,6 +114,7 @@
     <ClInclude Include="libs\glfw\include\GLFW\glfw3.h" />
     <ClInclude Include="libs\glfw\include\GLFW\glfw3native.h" />
     <ClInclude Include="SDK\UpdaCalc.h" />
+    <ClInclude Include="src\EC\FontSystem.hpp" />
     <ClInclude Include="src\pch.hpp" />
     <ClInclude Include="src\utils\address.hpp" />
     <ClInclude Include="src\utils\config.hpp" />
@@ -155,6 +157,8 @@
     <ClInclude Include="utils\utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\EC\DPIHelper.cpp" />
+    <ClCompile Include="src\EC\FontSystem.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>

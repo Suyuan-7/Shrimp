@@ -10,12 +10,12 @@
 #include <regex>
 #include <thread>
 #include <stdio.h>
-#include <dwmapi.h>
 #include <string>
 #include <winternl.h>
 #include <psapi.h>
 #include <format>
 #include <optional>
+#include <dwmapi.h>
 /* ext/includes */
 #include "ext/nlohmann/json.hpp"
 #include "ext/easywsclient/easywsclient.hpp"
@@ -31,6 +31,8 @@
 #include "src/EC/common.hpp"
 /* src */
 #include "src/EC/EC.hpp"
+#include "src/EC/DPIHelper.h"
+#include "src/EC/FontSystem.hpp"
 #include "src/utils/config.hpp"
 #include "src/utils/utils.hpp"
 #include "src/utils/exception.hpp"

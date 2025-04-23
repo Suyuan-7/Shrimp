@@ -59,6 +59,8 @@
     <ClInclude Include="src\utils\exception.hpp" />
     <ClInclude Include="src\utils\memory.hpp" />
     <ClInclude Include="src\utils\utils.hpp" />
+    <ClInclude Include="src\EC\FontSystem.hpp" />
+    <ClInclude Include="src\EC\DPIHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
@@ -79,5 +81,7 @@
     <ClCompile Include="src\utils\exception.cpp" />
     <ClCompile Include="src\utils\memory.cpp" />
     <ClCompile Include="src\utils\utils.cpp" />
+    <ClCompile Include="src\EC\FontSystem.cpp" />
+    <ClCompile Include="src\EC\DPIHelper.cpp" />
   </ItemGroup>
 </Project>
