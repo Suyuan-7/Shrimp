@@ -1,28 +1,4 @@
 #include "pch.hpp"
-// 获取系统DPI缩放率
-float GetSystemDPI()
-{
-	HDC hdc = NULL;
-	int dpi_a = NULL, dpi_b = NULL,dpi=NULL;
-	hdc = GetDC(0);
-	dpi_a = GetDeviceCaps(hdc, 118) / GetDeviceCaps(hdc, 8) * 100;
-	dpi_b = GetDeviceCaps(hdc, 88) / 96 * 100;
-	ReleaseDC(NULL,hdc);
-	if (dpi_a == 100) {
-		dpi = dpi_b;
-	}
-	else if (dpi_b == 100) {
-		dpi = dpi_a;
-	}
-	else if (dpi_a == dpi_b) {
-		dpi = dpi_a;
-	}
-	else {
-		dpi = 0;
-	}
-	return (float)dpi / 100;
-}
-
 // 将宽字符(wchar_t)转换为UTF-8字符串
 std::string WideToUTF8(const std::wstring& wstr) {
 	if (wstr.empty()) return "";
