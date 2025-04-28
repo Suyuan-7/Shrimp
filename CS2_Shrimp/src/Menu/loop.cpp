@@ -1,4 +1,4 @@
-﻿#include "pch.hpp"
+#include "pch.hpp"
 
 static ID3D11Device* g_pd3dDevice = nullptr;
 static ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
@@ -17,21 +17,16 @@ void menuloop()
 {
     /* 绘制句柄 */
     HWND hwnd = NULL;
-    WNDCLASSEXW wc = { sizeof(wc), sys::debug ? CS_CLASSDC : CS_HREDRAW | CS_VREDRAW, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"imp_Class", nullptr };
+    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"imp_Class", nullptr };
     ::RegisterClassExW(&wc);
     if (sys::debug)
     {
-        hwnd = ::CreateWindowW(wc.lpszClassName, L"Shrimp",
-            WS_OVERLAPPEDWINDOW,  // 使用标准窗口样式
-            GetSystemMetrics(0) / 2 - 960,
-            GetSystemMetrics(1) / 2 - 540,
-            1920, 1080,
-            nullptr, nullptr, wc.hInstance, nullptr);
+        hwnd = ::CreateWindowW(wc.lpszClassName, L"Shrimp", WS_OVERLAPPEDWINDOW, 500, 500, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
         sys::hWnd = hwnd;
     }
     else
     {
-        hwnd = ::CreateWindowExW(WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW, wc.lpszClassName, L"Shrimp", WS_POPUP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), nullptr, nullptr, wc.hInstance, nullptr);
+        hwnd = ::CreateWindowExW(NULL, wc.lpszClassName, L"Shrimp", WS_POPUP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), nullptr, nullptr, wc.hInstance, nullptr);
     }   
     if (!CreateDeviceD3D(hwnd))
     {
@@ -43,10 +38,10 @@ void menuloop()
     if (!sys::debug) {
         ::SetWindowLongW(hwnd, GWL_EXSTYLE, WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
         ::SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
-        ::ShowWindow(hwnd, SW_SHOWDEFAULT);
+        ::ShowWindow(hwnd, SW_NORMAL);
     }
     else {
-        ::ShowWindow(hwnd, SW_NORMAL);
+        ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     }
     ::UpdateWindow(hwnd);   
     IMGUI_CHECKVERSION();
@@ -54,7 +49,6 @@ void menuloop()
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    ImGui::StyleColorsClassic(&ImGui::GetStyle()); // 先加载经典主题
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
     ImFontConfig config;
@@ -80,9 +74,10 @@ void menuloop()
         sys::stratum2_18 = io.Fonts->AddFontFromFileTTF(stratum2Path.c_str(), 18.0f * sys::dpi);
         sys::stratum2_32 = io.Fonts->AddFontFromFileTTF(stratum2Path.c_str(), 32.0f * sys::dpi);
         sys::stratum2_64 = io.Fonts->AddFontFromFileTTF(stratum2Path.c_str(), 64.0f * sys::dpi);
-    }
-    
+    }    
+    io.FontDefault = sys::default_18;
     io.Fonts->Build();
+    ImGui::StyleColorsDark();
     const float 完全透明背景[4] = { 0, 0, 0, 0 };
     const float 调试背景[4] = { 0.06f, 0.56f, 0.56f, 1.00f }; // 保持原始alpha值
     static ULONGLONG time_上次刷新时间 = 0;
