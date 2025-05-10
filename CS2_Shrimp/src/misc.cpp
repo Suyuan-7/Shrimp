@@ -141,4 +141,3 @@ namespace Colors {
     const int ÇàÂÌ = 0x00FA9A;
     const int Í¸Ã÷É« = 0x00000000;
 }
-

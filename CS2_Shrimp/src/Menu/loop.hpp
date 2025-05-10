@@ -47,6 +47,7 @@ namespace imp
 
 void menuloop();
 bool 创建菜单导航按钮(ImDrawList* draw, const char* ico, int selected_ID, ImVec2 pos);
+void 创建子菜单分类按钮(ImDrawList* draw, const char* title, int selectde_ID, ImVec2 pos, bool 状态);
 void _菜单分类_透视();
 void _菜单分类_自瞄();
 void _菜单分类_扳机();

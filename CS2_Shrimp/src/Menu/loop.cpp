@@ -9,7 +9,7 @@ IDXGISwapChain* g_pSwapChain = nullptr;
 bool g_SwapChainOccluded = false;
 UINT g_ResizeWidth = 0, g_ResizeHeight = 0;
 ID3D11RenderTargetView* g_mainRenderTargetView = nullptr;
-int 当前选中 = 1;
+int 当前选中 = 1, 子菜单选中 = 1;
 static constexpr const char* l_title[] = { "Gamers", "AimBot", "Radar", "Collect" };
 const float 完全透明背景[4] = { 0, 0, 0, 0 };
 const float 调试背景[4] = { 0.06f, 0.56f, 0.56f, 1.00f }; // 保持原始alpha值
@@ -202,7 +202,7 @@ void menuloop()
     if (sys::剩余时间 <= 0) {
         LOG_WARNING("用户已到期!");
     }
-    LOG_WARNING("ImGui已卸载!");
+    LOG_INFO("ImGui已卸载!");
     /* 资源清理 */
     ReleaseImage();
 }
@@ -366,54 +366,46 @@ void _RenderFrame()
         {
             当前选中 = 4;
         }
-
         /* 菜单导航 */
-        //{
-        //    ImGui::SetNextWindowPos(ImVec2(pos.x + 70.0f, pos.y + 33.0f));
-        //    if (ImGui::BeginChild("imp.Child", ImVec2(430, 667), 0, 1 | 8 | 16)) 
-        //    {
-        //        switch (当前选中) {
-        //        case 1:
-        //            _菜单分类_透视();       // 透视
-        //            break;
-        //        case 2:
-        //            _菜单分类_自瞄();    // 自瞄
-        //            break;
-        //        case 3:
-        //            _菜单分类_扳机();   // 扳机
-        //            break;
-        //        case 4:
-        //            _菜单分类_雷达();     // 雷达
-        //            break;
-        //        case 5:
-        //            _菜单分类_道具();      // 道具
-        //            break;
-        //        case 6:
-        //            _菜单分类_点位();    // 点位
-        //            break;
-        //        case 7:
-        //            _菜单分类_设置();  // 设置
-        //            break;
-        //        case 8:
-        //            _菜单分类_外设();    // 外设
-        //            break;
-        //        default:
-        //            // 处理未知菜单索引（如默认菜单或错误状态）
-        //            break;
-        //        }
-        //        ImGui::EndChild();
-        //    }
-        //}
+            {
+            if (当前选中 == 1)
+            {
+                创建子菜单分类按钮(draw, "玩家绘制", 子菜单选中, pos, 展开状态::Player::Get().玩家绘制);
+            }
+            switch (子菜单选中) {
+            case 1:
+                _菜单分类_透视();       // 透视
+                break;
+            case 2:
+                _菜单分类_自瞄();    // 自瞄
+                break;
+            case 3:
+                _菜单分类_扳机();   // 扳机
+                break;
+            case 4:
+                _菜单分类_雷达();     // 雷达
+                break;
+            case 5:
+                _菜单分类_道具();      // 道具
+                break;
+            case 6:
+                _菜单分类_点位();    // 点位
+                break;
+            case 7:
+                _菜单分类_设置();  // 设置
+                break;
+            case 8:
+                _菜单分类_外设();    // 外设
+                break;
+            default:
+                // 处理未知菜单索引（如默认菜单或错误状态）
+                break;
+            }
+            }
         ImGui::End();
     }
     /* 结束渲染 */
 }
-/* 菜单导航 */
-/* 玩家 */
-/* 自瞄&扳机 */
-/* 收藏 (收藏功能大分类,方便使用)*/
-
-
 
 bool 创建菜单导航按钮(ImDrawList* draw,const char* ico, int selected_ID,ImVec2 pos)
 {
@@ -432,8 +424,14 @@ bool 创建菜单导航按钮(ImDrawList* draw,const char* ico, int selected_ID,
     ImGui::SameLine(NULL,30.0f);
     return ret;
 }
+void 创建子菜单分类按钮(ImDrawList* draw, const char* title, int selectde_ID, ImVec2 pos, bool 状态)
+{
+    draw->AddRectFilled(ImVec2(pos.x + 10.0f, pos.y + ImGui::GetCursorScreenPos().y), ImVec2(pos.x + 380.0f, pos.y + ImGui::GetCursorScreenPos().y + 48.0f), (0.133f, 0.114f, 0.173f, 0.3f), 5.0f);
+}
 void _菜单分类_透视()
-{ }
+{ 
+
+}
 void _菜单分类_自瞄()
 { }
 void _菜单分类_扳机()
