@@ -71,7 +71,7 @@ void menuloop()
         sys::stratum2_18 = io.Fonts->AddFontFromFileTTF(stratum2Path.c_str(), 18.0f * sys::dpi);
         sys::stratum2_32 = io.Fonts->AddFontFromFileTTF(stratum2Path.c_str(), 32.0f * sys::dpi);
         sys::stratum2_64 = io.Fonts->AddFontFromFileTTF(stratum2Path.c_str(), 64.0f * sys::dpi);
-        sys::ico = io.Fonts->AddFontFromFileTTF(icoPath.c_str(), 48.0f * sys::dpi);
+        sys::ico = io.Fonts->AddFontFromFileTTF(icoPath.c_str(), 36.0f * sys::dpi);
         io.FontDefault = sys::default_18;
         io.Fonts->Build();
     }    
@@ -343,26 +343,35 @@ void _RenderFrame()
     if (ImGui::Begin("imp.main", nullptr, 1 | 8 | 16)) {
         ImVec2 pos = ImGui::GetWindowPos();
         ImDrawList* draw = ImGui::GetWindowDrawList();
-        bool 鼠标是否在加号中 = _IsMouseRect(ImVec2(pos.x + 320.0f, pos.y + 15.0f), ImVec2(20.0f,20.0f), ImGui::GetMousePos());
+        bool isMouseOverPlus = _IsMouseRect(ImVec2(pos.x + 320.0f, pos.y + 15.0f), ImVec2(20.0f, 20.0f), ImGui::GetMousePos());
+        static bool isPlusHovered = false;
         draw->AddImageRounded(到图片指针(m_logo), pos, ImVec2(pos.x + 48.0f, pos.y + 48.0f), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), IM_COL32(255, 255, 255, 255), 50.0f, ImDrawFlags_RoundCornersAll);        
         draw->AddLine(ImVec2(pos.x + 325.0f, pos.y + 25.0f), ImVec2(pos.x + 335.0f, pos.y + 25.0f), toColor(浅灰), 2.0f);
         draw->AddLine(ImVec2(pos.x + 330.0f, pos.y + 20.0f), ImVec2(pos.x + 330.0f, pos.y + 30.0f), toColor(浅灰), 2.0f);
-        draw->AddCircle(ImVec2(pos.x + 330.0f, pos.y + 25.0f), 10.0f, toColor(鼠标是否在加号中 ? 灰色 : 白色), ImDrawFlags_RoundCornersAll, 2.0f);
+        draw->AddCircle(ImVec2(pos.x + 330.0f, pos.y + 25.0f), 10.0f, toColor(isMouseOverPlus || isPlusHovered ? 灰色 : 白色), ImDrawFlags_RoundCornersAll, 2.0f);
         draw->AddText(sys::stratum2_32, 32.0f * sys::dpi, ImVec2(pos.x + 140.0f, pos.y), toColor(青绿), "Shrimp");
         draw->AddText(sys::stratum2_18, 18.0f * sys::dpi, ImVec2(pos.x + 150.0f, pos.y + 30.0f), toColor(灰色), CS2_VERSION);
+        if (isMouseOverPlus || isPlusHovered) {
+            ImGui::SetNextWindowPos(ImVec2(pos.x + 230.0f, pos.y + 30.0f));
+            if (ImGui::BeginChild("##++", ImVec2(100.0f, 150.0f))) {
+                isPlusHovered = _IsMouseRect(ImGui::GetWindowPos(), ImGui::GetWindowSize(), ImGui::GetMousePos());
+
+                ImGui::EndChild();
+            }
+        }
         ImGui::SetCursorPos(ImVec2(25.0f, 652.0f));
-        if (创建菜单导航按钮(draw,当前选中 == 1 ? "6" : "5", 1,pos)) {
+        if (RenderMenuNavButton(draw,当前选中 == 1 ? "6" : "5", 1,pos)) {
             当前选中 = 1;
         }
-        if (创建菜单导航按钮(draw, 当前选中 == 2 ? "0" : "2", 2, pos))
+        if (RenderMenuNavButton(draw, 当前选中 == 2 ? "0" : "2", 2, pos))
         {
             当前选中 = 2;
         }
-        if (创建菜单导航按钮(draw, 当前选中 == 3 ? "7" : "8", 3, pos))
+        if (RenderMenuNavButton(draw, 当前选中 == 3 ? "7" : "8", 3, pos))
         {
             当前选中 = 3;
         }
-        if (创建菜单导航按钮(draw, 当前选中 == 4 ? "3" : "4", 4, pos))
+        if (RenderMenuNavButton(draw, 当前选中 == 4 ? "3" : "4", 4, pos))
         {
             当前选中 = 4;
         }
@@ -370,82 +379,38 @@ void _RenderFrame()
             {
             if (当前选中 == 1)
             {
-                创建子菜单分类按钮(draw, "玩家绘制", 子菜单选中, pos, 展开状态::Player::Get().玩家绘制);
+                RenderSubmenuCategoryButton(draw, "玩家绘制", 子菜单选中, pos, 展开状态::Player::Get().玩家绘制);
             }
-            switch (子菜单选中) {
-            case 1:
-                _菜单分类_透视();       // 透视
-                break;
-            case 2:
-                _菜单分类_自瞄();    // 自瞄
-                break;
-            case 3:
-                _菜单分类_扳机();   // 扳机
-                break;
-            case 4:
-                _菜单分类_雷达();     // 雷达
-                break;
-            case 5:
-                _菜单分类_道具();      // 道具
-                break;
-            case 6:
-                _菜单分类_点位();    // 点位
-                break;
-            case 7:
-                _菜单分类_设置();  // 设置
-                break;
-            case 8:
-                _菜单分类_外设();    // 外设
-                break;
-            default:
-                // 处理未知菜单索引（如默认菜单或错误状态）
-                break;
-            }
+
             }
         ImGui::End();
     }
     /* 结束渲染 */
 }
 
-bool 创建菜单导航按钮(ImDrawList* draw,const char* ico, int selected_ID,ImVec2 pos)
+//创建菜单导航按钮
+bool RenderMenuNavButton(ImDrawList* draw,const char* ico, int selectde_ID,ImVec2 pos)
 {
     bool ret = false;
     ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_Button + 1, IM_COL32(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_Button + 2, IM_COL32(0, 0, 0, 0));
-    ImGui::PushID("cddh" + (char)selected_ID);
+    ImGui::PushID("cddh" + (char)selectde_ID);
     ret = ImGui::Button("##", ImVec2(52, 52));
     ImGui::PopID();
     ImGui::PopStyleColor(3);
-    draw->AddText(sys::ico, 当前选中 == selected_ID ? 48.0f : 32.0f * sys::dpi, ImVec2(ImGui::GetItemRectMin().x, pos.y + 650.0f), toColor(当前选中 == selected_ID ? 青绿 : 灰色), ico);
-    if (selected_ID != 当前选中) {
-        draw->AddText(sys::stratum2_18, 16.0f * sys::dpi, ImVec2(ImGui::GetItemRectMin().x - 5.0f, pos.y + 680.0f), toColor(灰色), l_title[selected_ID - 1]);
+    draw->AddText(sys::ico, 当前选中 == selectde_ID ? 36.0f : 24.0f * sys::dpi, ImVec2(ImGui::GetItemRectMin().x, pos.y + 650.0f), toColor(当前选中 == selectde_ID ? 青绿 : 灰色), ico);
+    if (selectde_ID != 当前选中) {
+        draw->AddText(sys::stratum2_18, 16.0f * sys::dpi, ImVec2(ImGui::GetItemRectMin().x - 5.0f, pos.y + 680.0f), toColor(灰色), l_title[selectde_ID - 1]);
     }
     ImGui::SameLine(NULL,30.0f);
     return ret;
 }
-void 创建子菜单分类按钮(ImDrawList* draw, const char* title, int selectde_ID, ImVec2 pos, bool 状态)
+void RenderSubmenuCategoryButton(ImDrawList* draw, const char* title, int selectde_ID, ImVec2 pos, bool _state)
 {
-    draw->AddRectFilled(ImVec2(pos.x + 10.0f, pos.y + ImGui::GetCursorScreenPos().y), ImVec2(pos.x + 380.0f, pos.y + ImGui::GetCursorScreenPos().y + 48.0f), (0.133f, 0.114f, 0.173f, 0.3f), 5.0f);
-}
-void _菜单分类_透视()
-{ 
+    draw->AddRectFilled(ImVec2(pos.x + 10.0f, pos.y + ImGui::GetCursorScreenPos().y), ImVec2(pos.x + 380.0f, pos.y + ImGui::GetCursorScreenPos().y + 48.0f), (0.133f, 0.114f, 0.173f, 0.8f), 5.0f);
 
 }
-void _菜单分类_自瞄()
-{ }
-void _菜单分类_扳机()
-{ }
-void _菜单分类_雷达()
-{ }
-void _菜单分类_道具()
-{ }
-void _菜单分类_点位()
-{ }
-void _菜单分类_设置()
-{ }
-void _菜单分类_外设()
-{ }
 
 ImVec2 _addImVec2(ImVec2 p1, ImVec2 p2)
 {
